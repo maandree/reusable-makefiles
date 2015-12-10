@@ -1,0 +1,17 @@
+Include the mk/ dir into your repository
+and follow the instructions.
+
+This makefiles are support to be very generic.
+They are handwritten so they are readable!
+  (Althought they could be easier to read.)
+
+Currently support stuff:
+  Internationalisation with gettext
+  C programs (not libraries get)
+  Texinfo manual (although only one, and no translations)
+  Man pages, with translations.
+  ... other things that you really do want to care about
+
+All files are licensed under the terms of
+the GNU All-Permissive License.
+
