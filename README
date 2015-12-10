@@ -10,7 +10,7 @@ Currently support stuff:
   C programs (not libraries get)
   Texinfo manual (although only one, and no translations)
   Man pages, with translations.
-  ... other things that you really do want to care about
+  ... other things that you really do not want to care about
 
 All files are licensed under the terms of
 the GNU All-Permissive License.
