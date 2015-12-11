@@ -10,6 +10,7 @@ Currently support stuff:
   C programs (not libraries yet)
   Texinfo manual (although only one, and no translations)
   Man pages, with translations.
+  auto-auto-complete scripts.
   ... other things that you really do not want to care about
 
 All files are licensed under the terms of
