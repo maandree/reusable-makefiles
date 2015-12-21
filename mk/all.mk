@@ -11,7 +11,7 @@
 
 ifndef Q
 A = \e[35m
-Z = [m
+Z = [m[D 
 endif
 
 include $(v)mk/path.mk
