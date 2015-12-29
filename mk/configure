@@ -411,11 +411,8 @@ fi
 defdir ()
 {
     p="$(quote "${2}")"
-    if ! test "${p%%\'*}" = "${p}"; then
-	p="$(echo "${p}" | sed "s/'/'\\\\''/g")"
-    fi
     if ! test -n "$(eval echo '${have_'"${1}"'}')"; then
-       eval "${1}='${p}'"
+       eval "${1}=${p}"
     fi
 }
 if test -n "${f_gnulinux}"; then
