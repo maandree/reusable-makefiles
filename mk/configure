@@ -37,6 +37,8 @@ quote ()
 	value="'$(echo "${value}" | sed "s/'/'\\\\''/g")'"
     elif ! test "$(printf '%s' ${value})" = "${value}"; then
 	value="'${value}'"
+    elif ! test "$(echo ${value}) | tr -d a-zA-Z0-9+_@%/=-" = ""; then
+	value="'${value}'"
     fi
     echo "${value}"
 }
@@ -57,7 +59,7 @@ for option; do
     # For --{with{,out},{en,dis}able}-*.
     feature="${option#--*}"
     feature="${feature#*-}"
-    feature="$(echo "${feature}" | tr qwertyuiopasdfghjklzxcvbnm- QWERTYUIOPASDFGHJKLZXCVBNM_)"
+    feature="$(echo "${feature}" | tr a-z- A-Z_)"
     
     # For directories and filename tweaks.
     nodash=_novar
