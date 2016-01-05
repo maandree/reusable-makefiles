@@ -13,7 +13,7 @@
 .PHONY: clean
 clean: clean-dist
 	@$(PRINTF_INFO) '\e[00;01;31mCLEANING BUILT FILES\e[34m\e[00m\n'
-	-$(Q)$(RM) -r -- bin aux
+	-$(Q)$(RM) -r -- bin aux *.su src/*.su src/*/*.su src/*/*/*.su src/*/*/*/*.su
 	@$(ECHO)
 
 # Delete all files that are created during configuration or building.
