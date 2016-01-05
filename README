@@ -7,7 +7,7 @@ They are handwritten so they are readable!
 
 Currently supported stuff:
   Internationalisation with gettext
-  C programs (not libraries yet)
+  C programs and C libraries
   Texinfo manual (although only one, and no translations)
   Man pages, with translations.
   auto-auto-complete scripts.

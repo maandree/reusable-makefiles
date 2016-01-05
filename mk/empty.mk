@@ -1,4 +1,4 @@
-# Copyright (C) 2015  Mattias Andrée <maandree@member.fsf.org>
+# Copyright (C) 2015, 2016  Mattias Andrée <maandree@member.fsf.org>
 # 
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,6 +21,9 @@ base:
 .PHONY: cmd
 cmd:
 
+.PHONY: lib
+lib:
+
 .PHONY: doc
 doc:
 
@@ -40,6 +43,9 @@ install-base:
 
 .PHONY: install-cmd
 install-cmd:
+
+.PHONY: install-lib
+install-lib:
 
 .PHONY: install-doc
 install-doc:
@@ -61,7 +67,7 @@ all: base
 everything: base
 
 .PHONY: base
-base: cmd
+base: cmd lib
 
 
 .PHONY: install
@@ -71,7 +77,7 @@ install: install-base
 install-everything: install-base
 
 .PHONY: install-base
-install-base: install-cmd
+install-base: install-cmd install-lib
 
 
 
@@ -91,4 +97,7 @@ install-base-strip: install-base
 install-cmd-strip: __STRIP = -s
 install-cmd-strip: install-cmd
 
+.PHONY: install-lib-strip
+install-lib-strip: __STRIP = -s
+install-lib-strip: install-lib
 

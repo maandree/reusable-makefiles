@@ -1,4 +1,4 @@
-# Copyright (C) 2015  Mattias Andrée <maandree@member.fsf.org>
+# Copyright (C) 2015, 2016  Mattias Andrée <maandree@member.fsf.org>
 # 
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -50,17 +50,19 @@
 # shall be installed. For example, if you want
 # the binary to be installed to /usr/sbin,
 # define _BINDIR = SBINDIR.
+# 
+# List libraries to compile in in _LIB. For each
+# library, sould should also define
+# _SO_VERSION_$(LIBRARY) and _SO_MAJOR_$(LIBRARY)
+# with the full version number and the major
+# version number, respectively. Additionally,
+# list all header files that shall be installed
+# in _H, these should not contain the 'src/' prefix
+# or the '.h' suffix.
 
 
 ifdef _C_STD
 
-
-
-# WHEN TO BUILD, INSTALL, AND UNINSTALL:
-
-cmd: cmd-c
-install-cmd: install-cmd-c
-uninstall: uninstall-cmd-c
 
 
 # HELP VARIABLES:
@@ -68,6 +70,31 @@ uninstall: uninstall-cmd-c
 # Figure out whether the GCC is being used.
 ifeq ($(shell $(PRINTF) '%s\n' ${CC} | $(HEAD) -n 1),gcc)
 __USING_GCC = 1
+endif
+
+# Are there any commands?
+ifdef _BIN
+__HAVE_CMD_C = 1
+endif
+ifdef _SBIN
+__HAVE_CMD_C = 1
+endif
+ifdef _LIBEXEC
+__HAVE_CMD_C = 1
+endif
+
+
+# WHEN TO BUILD, INSTALL, AND UNINSTALL:
+
+ifdef __HAVE_CMD_C
+cmd: cmd-c
+install-cmd: install-cmd-c
+uninstall: uninstall-cmd-c
+endif
+ifdef _LIB
+lib: lib-c
+install-lib: install-lib-c
+uninstall: uninstall-lib-c
 endif
 
 
@@ -169,11 +196,29 @@ endif
 .PHONY: cmd-c
 cmd-c: $(foreach B,$(_BIN) $(_SBIN) $(_LIBEXEC),bin/$(B))
 
-# Compile a C file into an object file.
+.PHONY: lib-c
+lib-c: $(foreach B,$(_LIB),bin/$(B).so)
+
+# Compile a C file into an object file for a command.
 aux/%.o: $(v)src/%.c $(foreach H,$(__H),$(v)$(H))
 	@$(PRINTF_INFO) '\e[00;01;31mCC\e[34m %s\e[00m$A\n' "$@"
 	@$(MKDIR) -p $(shell $(DIRNAME) $@)
 	$(Q)$(__CC) -o $@ $< $(__CC_POST) #$Z
+	@$(ECHO_EMPTY)
+
+# Compile a C file into an object file for a library.
+aux/%.pic.o: $(v)src/%.c $(foreach H,$(__H),$(v)$(H))
+	@$(PRINTF_INFO) '\e[00;01;31mCC\e[34m %s\e[00m$A\n' "$@"
+	@$(MKDIR) -p $(shell $(DIRNAME) $@)
+	$(Q)$(__CC) -fPIC -o $@ $< $(__CC_POST) #$Z
+	@$(ECHO_EMPTY)
+
+# Link object files into a library.
+# Dependencies are declared below.
+bin/%.so:
+	@$(PRINTF_INFO) '\e[00;01;31mLD\e[34m %s\e[00;32m$A\n' "$@"
+	@$(MKDIR) -p bin
+	$(Q)$(__LD) -shared -Wl,-soname,$*.so.$(_SO_MAJOR_$($*)) -o $@ $^ $(__LD_POST) #$Z
 	@$(ECHO_EMPTY)
 
 # Link object files into a command.
@@ -190,6 +235,7 @@ aux/lang-c.mk: Makefile
 	@$(MKDIR) -p aux
 	@$(ECHO) > aux/lang-c.mk
 	@$(foreach B,$(_BIN) $(_SBIN) $(_LIBEXEC),$(ECHO) bin/$(B): $(foreach O,$(_OBJ_$(B)),aux/$(O).o) >> aux/lang-c.mk &&) $(TRUE)
+	@$(foreach B,$(_LIB),$(ECHO) bin/$(B).so: $(foreach O,$(_OBJ_$(B)),aux/$(O).pic.o) >> aux/lang-c.mk &&) $(TRUE)
 
 
 # INSTALL RULES:
@@ -217,6 +263,17 @@ ifdef COMMAND
 endif
 	@$(ECHO_EMPTY)
 
+.PHONY: install-lib-c
+install-lib-c: $(foreach B,$(_LIB),bin/$(B).so)
+	@$(PRINTF_INFO) '\e[00;01;31mINSTALL\e[34m %s\e[00m\n' "$@"
+	$(Q)$(INSTALL_DIR) -- "$(DESTDIR)$(LIBDIR)"
+	$(Q)$(foreach B,$(_LIB),$(LN) -sf -- "$(B).so.$(_SO_VERSION_$(B))" "$(DESTDIR)$(LIBDIR)/$(B).so.$(_SO_MAJOR_$(B))" &&) $(TRUE)
+	$(Q)$(foreach B,$(_LIB),$(INSTALL_PROGRAM) $(foreach B,$(_LIB),bin/$(B).so) -- "$(DESTDIR)$(LIBDIR)/$(B).so.$(_SO_VERSION_$(B))" &&) $(TRUE)
+	$(Q)$(foreach B,$(_LIB),$(LN) -sf -- "$(B).so.$(_SO_VERSION_$(B))" "$(DESTDIR)$(LIBDIR)/$(B).so" &&) $(TRUE)
+	$(Q)$(INSTALL_DIR) -- $(foreach H,$(_H),"$(DESTDIR)$(INCLUDEDIR)/$(shell $(DIRNAME) "$(H)")")
+	$(Q)$(foreach H,$(_H),$(INSTALL_DATA) "src/$(H).h" -- "$(DESTDIR)$(INCLUDEDIR)/$(H).h" &&) $(TRUE)
+	@$(ECHO_EMPTY)
+
 
 # UNINSTALL RULES:
 
@@ -238,6 +295,13 @@ ifdef _LIBEXEC
 endif
 endif
 
+.PHONY: uninstall-lib-c
+uninstall-lib-c:
+	-$(Q)$(RM) -- $(foreach B,$(_LIB),"$(DESTDIR)$(LIBDIR)/$(B).so")
+	-$(Q)$(RM) -- $(foreach B,$(_LIB),"$(DESTDIR)$(LIBDIR)/$(B).so.$(_SO_MAJOR_$(B))")
+	-$(Q)$(RM) -- $(foreach B,$(_LIB),"$(DESTDIR)$(LIBDIR)/$(B).so.$(_SO_VERSION_$(B))")
+	-$(Q)$(RM) -- $(foreach H,$(_H),"$(DESTDIR)$(INCLUDEDIR)/$(H).h")
+	-$(Q)$(foreach H,$(_H),if ! $(TEST) "$(shell $(ECHO) "$(H)" | $(CUT) -d / -f 1)" = "$(H)"; then $(RMDIR) -- "$(DESTDIR)$(INCLUDEDIR)/$(shell $(DIRNAME) "$(H)")"; fi;)
 
 endif
 
