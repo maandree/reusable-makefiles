@@ -52,7 +52,7 @@
 # define _BINDIR = SBINDIR.
 # 
 # List libraries to compile in in _LIB. For each
-# library, sould should also define
+# library, you should also define
 # _SO_VERSION_$(LIBRARY) and _SO_MAJOR_$(LIBRARY)
 # with the full version number and the major
 # version number, respectively. Additionally,
